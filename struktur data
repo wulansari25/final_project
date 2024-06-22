@@ -1,0 +1,100 @@
+import 'dart:collection';
+import 'dart:io';
+
+class Gorden {
+  int id;
+  String nama;
+  double hargaPerMeter;
+  int stok;
+
+  Gorden(this.id, this.nama, this.hargaPerMeter, this.stok);
+}
+
+class Pesanan {
+  Gorden gorden;
+  double panjang;
+  int jumlah;
+
+  Pesanan(this.gorden, this.panjang, this.jumlah);
+
+  double totalBiaya() {
+    return gorden.hargaPerMeter * panjang * jumlah;
+  }
+}
+
+class TokoGorden {
+  Map<int, Gorden> inventaris = {};
+  Queue<Pesanan> pesanan = Queue<Pesanan>();
+
+  void tambahGorden(int id, String nama, double hargaPerMeter, int stok) {
+    var gorden = Gorden(id, nama, hargaPerMeter, stok);
+    inventaris[id] = gorden;
+  }
+
+  Pesanan? buatPesanan(int gordenId, double panjang, int jumlah) {
+    if (inventaris.containsKey(gordenId) && inventaris[gordenId]!.stok >= jumlah) {
+      var pesananBaru = Pesanan(inventaris[gordenId]!, panjang, jumlah);
+      pesanan.add(pesananBaru);
+      inventaris[gordenId]!.stok -= jumlah;
+      return pesananBaru;
+    } else {
+      print("Gagal membuat pesanan. Gorden tidak ditemukan atau stok tidak mencukupi.");
+      return null;
+    }
+  }
+
+  void daftarPesanan() {
+    for (var pesanan in pesanan) {
+      print('Pesanan: ${pesanan.gorden.nama}, Panjang: ${pesanan.panjang}, Jumlah: ${pesanan.jumlah}, Total Biaya: ${pesanan.totalBiaya()}');
+    }
+  }
+
+  void daftarGorden() {
+    List<Gorden> gordenList = inventaris.values.toList();
+    gordenList.sort((a, b) => a.nama.compareTo(b.nama));
+    for (var gorden in gordenList) {
+      print('Gorden: ${gorden.nama}, Harga: ${gorden.hargaPerMeter}, Stok: ${gorden.stok}');
+    }
+  }
+}
+
+void main() {
+  var toko = TokoGorden();
+  toko.tambahGorden(1, "Gorden Blackout", 95, 100);
+  toko.tambahGorden(2, "Gorden Vertikal", 370, 50);
+  toko.tambahGorden(3, "Gorden Rollin", 400, 80);
+  toko.tambahGorden(4, "Gorden Biasa", 60, 70);
+  toko.tambahGorden(5, "Gorden katun", 50, 12);
+
+  while (true) {
+    print("\nMenu:");
+    print("1. Lihat jenis gorden");
+    print("2. Buat pesanan");
+    print("3. Lihat daftar pesanan");
+    print("4. Keluar");
+
+    stdout.write("Pilih menu: ");
+    var pilihan = stdin.readLineSync();
+
+    if (pilihan == '1') {
+      toko.daftarGorden();
+    } else if (pilihan == '2') {
+      stdout.write("Masukkan ID gorden: ");
+      var gordenId = int.parse(stdin.readLineSync()!);
+
+      stdout.write("Masukkan panjang gorden (meter): ");
+      var panjang = double.parse(stdin.readLineSync()!);
+
+      stdout.write("Masukkan jumlah gorden: ");
+      var jumlah = int.parse(stdin.readLineSync()!);
+
+      toko.buatPesanan(gordenId, panjang, jumlah);
+    } else if (pilihan == '3') {
+      toko.daftarPesanan();
+    } else if (pilihan == '4') {
+      break;
+    } else {
+      print("Pilihan tidak valid.");
+    }
+  }
+}
